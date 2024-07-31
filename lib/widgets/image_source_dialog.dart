@@ -22,19 +22,25 @@ class ImageSourceModal extends StatelessWidget {
       content: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          ElevatedButton.icon(
-            onPressed: () {
-              Navigator.pop(context, ImageSource.camera);
-            },
-            icon: const Icon(Icons.camera_alt),
-            label: const Text("Camera"),
+          Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: ElevatedButton.icon(
+              onPressed: () {
+                Navigator.pop(context, ImageSource.camera);
+              },
+              icon: const Icon(Icons.camera_alt),
+              label: const Text("Camera"),
+            ),
           ),
-          ElevatedButton.icon(
-            onPressed: () {
-              Navigator.pop(context, ImageSource.gallery);
-            },
-            icon: const Icon(Icons.browse_gallery),
-            label: const Text("Gallery"),
+          Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: ElevatedButton.icon(
+              onPressed: () {
+                Navigator.pop(context, ImageSource.gallery);
+              },
+              icon: const Icon(Icons.browse_gallery),
+              label: const Text("Gallery"),
+            ),
           ),
         ],
       ),

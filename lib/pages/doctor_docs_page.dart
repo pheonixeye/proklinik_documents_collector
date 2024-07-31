@@ -1,3 +1,4 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:documents_collector/api/hx_documents.dart';
 import 'package:documents_collector/providers/px_doctor.dart';
 import 'package:documents_collector/providers/px_documents.dart';
@@ -23,98 +24,106 @@ class _DoctorDocsPageState extends State<DoctorDocsPage> {
           appBar: AppBar(
             title: Text('Dr. ${d.doctor!.data['name_en']}'),
           ),
-          body: ListView(
-            children: [
-              ...docs.documentKeys.map((e) {
-                return Padding(
-                  padding: const EdgeInsets.all(8.0),
-                  child: Card.outlined(
-                    elevation: 6,
-                    child: Padding(
+          body: Builder(
+            builder: (context) {
+              while (docs.documents == null) {
+                return const CentralLoading();
+              }
+              return ListView(
+                children: [
+                  ...docs.documentKeys.map((e) {
+                    return Padding(
                       padding: const EdgeInsets.all(8.0),
-                      child: ListTile(
-                        title: Padding(
+                      child: Card.outlined(
+                        elevation: 6,
+                        child: Padding(
                           padding: const EdgeInsets.all(8.0),
-                          child: Text(e),
-                        ),
-                        subtitle: Builder(
-                          builder: (context) {
-                            while (docs.documents == null) {
-                              return const Center(
-                                child: Text('No Image Found'),
-                              );
-                            }
-                            return FutureBuilder<Uri>(
+                          child: ListTile(
+                            title: Padding(
+                              padding: const EdgeInsets.all(8.0),
+                              child: Text(e),
+                            ),
+                            subtitle: FutureBuilder(
                               future:
                                   HxDocuments.getFileUrl(docs.documents!.id, e),
                               builder: (context, snapshot) {
-                                while (!snapshot.hasData ||
-                                    snapshot.data == null) {
-                                  return const LinearProgressIndicator();
+                                while (docs.documents == null) {
+                                  return const Center(
+                                    child: Text('No Image Found'),
+                                  );
                                 }
-                                return Image.network(snapshot.data!.toString());
+                                return CachedNetworkImage(
+                                  imageUrl: snapshot.data.toString(),
+                                  progressIndicatorBuilder:
+                                      (context, url, downloadProgress) =>
+                                          LinearProgressIndicator(
+                                              value: downloadProgress.progress),
+                                  errorWidget: (context, url, error) =>
+                                      const Icon(Icons.error),
+                                );
                               },
-                            );
-                          },
-                        ),
-                        trailing: IconButton.outlined(
-                          onPressed: () async {
-                            BuildContext? dialogContext;
-                            final ImageSource? source =
-                                await showDialog<ImageSource>(
-                              context: context,
-                              builder: (context) {
-                                return const ImageSourceModal();
-                              },
-                            );
-                            if (source == null) {
-                              return;
-                            }
-                            final picker = ImagePicker();
-                            try {
-                              final result =
-                                  await picker.pickImage(source: source);
-                              if (result == null) {
-                                return;
-                              }
-
-                              if (context.mounted) {
-                                showDialog(
+                            ),
+                            trailing: IconButton.outlined(
+                              onPressed: () async {
+                                BuildContext? dialogContext;
+                                final ImageSource? source =
+                                    await showDialog<ImageSource>(
                                   context: context,
                                   builder: (context) {
-                                    dialogContext = context;
-                                    return const Material(
-                                      child: CentralLoading(),
-                                    );
+                                    return const ImageSourceModal();
                                   },
                                 );
-                              }
-                              final bytes = await result.readAsBytes();
-                              await docs
-                                  .addDoctorDocoument(e, bytes)
-                                  .whenComplete(() {
-                                Navigator.pop(dialogContext!);
-                              });
-                            } catch (e) {
-                              if (context.mounted) {
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  SnackBar(
-                                    content: Text(
-                                      e.toString(),
-                                    ),
-                                  ),
-                                );
-                              }
-                            }
-                          },
-                          icon: const Icon(Icons.camera_alt),
+                                if (source == null) {
+                                  return;
+                                }
+                                final picker = ImagePicker();
+                                try {
+                                  final result =
+                                      await picker.pickImage(source: source);
+                                  if (result == null) {
+                                    return;
+                                  }
+
+                                  if (context.mounted) {
+                                    showDialog(
+                                      context: context,
+                                      builder: (context) {
+                                        dialogContext = context;
+                                        return const Material(
+                                          type: MaterialType.card,
+                                          child: CentralLoading(),
+                                        );
+                                      },
+                                    );
+                                  }
+                                  final bytes = await result.readAsBytes();
+                                  await docs
+                                      .addDoctorDocoument(e, bytes)
+                                      .whenComplete(() {
+                                    Navigator.pop(dialogContext!);
+                                  });
+                                } catch (e) {
+                                  if (context.mounted) {
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      SnackBar(
+                                        content: Text(
+                                          e.toString(),
+                                        ),
+                                      ),
+                                    );
+                                  }
+                                }
+                              },
+                              icon: const Icon(Icons.camera_alt),
+                            ),
+                          ),
                         ),
                       ),
-                    ),
-                  ),
-                );
-              }),
-            ],
+                    );
+                  }),
+                ],
+              );
+            },
           ),
         );
       },

@@ -1,4 +1,5 @@
 import 'package:documents_collector/api/hx_documents.dart';
+import 'package:documents_collector/api/pocket_main.dart';
 import 'package:flutter/material.dart';
 import 'package:pocketbase/pocketbase.dart';
 
@@ -45,6 +46,16 @@ class PxDocuments extends ChangeNotifier {
         fileBytes: fileBytes,
       );
       notifyListeners();
+    } catch (e) {
+      throw Exception(e);
+    }
+  }
+
+  String imgUri(String key) {
+    try {
+      final uri = pb.files.getUrl(_documents!, key);
+      // print(uri.toString());
+      return uri.toString();
     } catch (e) {
       throw Exception(e);
     }
